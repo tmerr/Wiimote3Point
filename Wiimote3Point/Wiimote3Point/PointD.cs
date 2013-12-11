@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Wiimote3Point
 {
-    struct PointD
+    public struct PointD
     {
         public double X, Y, Z;
 
