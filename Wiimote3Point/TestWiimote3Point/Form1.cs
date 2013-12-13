@@ -29,7 +29,7 @@ namespace TestWiimote3Point
 
         private void wiimote_Wiimote3PChanged(object sender, Wiimote3PChangedEventArgs args)
         {
-            lblPosition.Invoke(new Action(() =>
+            lblPosition.BeginInvoke(new Action(() =>
             {
                 lblPosition.Text = String.Format("{0}\n{1}\n{2}", args.positionOrientation.X, args.positionOrientation.Y, args.positionOrientation.Z);
             }));
