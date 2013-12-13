@@ -167,23 +167,21 @@ namespace Wiimote3Point
         /// <returns>A list of the five coefficients.</returns>
         private static List<double> ComputeCoefficients(double phi1, double phi2, double b, double d12, Vector<double> p3n)
         {
-            List<double> a = new List<double>(5);
-
             double p1 = p3n[0];
             double p2 = p3n[1];
             
             double tmp4 = Math.Pow(p2, 4);
-            a[4] = - tmp4*Math.Pow(phi2, 2) - tmp4*Math.Pow(phi1, 2) - tmp4;
+            var a4 = - tmp4*Math.Pow(phi2, 2) - tmp4*Math.Pow(phi1, 2) - tmp4;
 
             double tmp3 = Math.Pow(p2, 3);
-            a[3] =
+            var a3 =
                 + (2 * tmp3 * d12 * b)
                 + (2 * tmp3 * Math.Pow(phi2, 2) * d12 * b)
                 - (2 * tmp3 * phi1 * phi2 * d12)
                 ;
 
             double tmp2 = Math.Pow(p2, 2);
-            a[2] =
+            var a2 =
                 - (phi2 * phi2 * tmp2 * p1 * p1)
                 - (phi2 * phi2 * tmp2 * d12 * d12 * b * b)
                 - (phi2 * phi2 * tmp2 * d12 * d12)
@@ -199,14 +197,14 @@ namespace Wiimote3Point
                 - (2 * p1 * p1 * tmp2)
                 ;
 
-            a[1] =
+            var a1 =
                 + (2 * p1 * p1 * p2 * d12 * b)
                 + (2 * phi1 * phi2 * tmp3 * d12)
                 - (2 * phi2 * phi2 * tmp3 * d12 * b)
                 - (2 * p1 * p2 * d12 * d12 * b)
                 ;
 
-            a[0] =
+            var a0 =
                 - (2 * phi1 * phi2 * p1 * tmp2 * d12 * b)
                 + (phi2 * phi2 * tmp2 * d12 * d12)
                 + (2 * Math.Pow(p1, 3) * d12)
@@ -220,7 +218,7 @@ namespace Wiimote3Point
                 + (phi2 * phi2 * tmp2 * d12 * d12 * b * b)
                 ;
 
-            return a;
+            return new List<double>(new double[] {a4, a3, a2, a1, a0});
         }
 
         [StructLayout(LayoutKind.Sequential)]

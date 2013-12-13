@@ -24,7 +24,7 @@ namespace Wiimote3Point
         /// <summary>
         /// Full access to the underlying wiimote.
         /// </summary>
-        public WiimoteLib.Wiimote wiimote;
+        public WiimoteLib.Wiimote wiimote = new WiimoteLib.Wiimote();
 
         private SensorTriangle sensorTriangle;
 
@@ -50,7 +50,7 @@ namespace Wiimote3Point
 
         private void wm_WiimoteChanged(object sender, WiimoteLib.WiimoteChangedEventArgs args)
         {
-            if (args.WiimoteState.IRState.IRSensors.Length >= 3)
+            if (args.WiimoteState.IRState.IRSensors[0].Found && args.WiimoteState.IRState.IRSensors[1].Found && args.WiimoteState.IRState.IRSensors[2].Found)
             {
                 Vector<double> unitVectorf1 = GetUnitVector(args.WiimoteState.IRState.IRSensors[0].RawPosition);
                 Vector<double> unitVectorf2 = GetUnitVector(args.WiimoteState.IRState.IRSensors[1].RawPosition);
