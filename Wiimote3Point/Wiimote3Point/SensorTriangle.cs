@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MathNet.Numerics.LinearAlgebra.Generic;
+using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace Wiimote3Point
 {
@@ -14,7 +16,7 @@ namespace Wiimote3Point
         /// <summary>
         /// The points on the triangle relative to the world origin.
         /// </summary>
-        public PointD p1, p2, p3;
+        public Vector<double> P1, P2, P3;
 
         /// <summary>
         /// Construct the sensor triangle assuming it is isosceles, and lying on the world's XZ axis
@@ -24,16 +26,16 @@ namespace Wiimote3Point
         /// <param name="height">The height of the triangle.</param>
         public SensorTriangle(double width, double height)
         {
-            p1 = new PointD(-width / 2, 0, 0);
-            p2 = new PointD(width / 2, 0, 0);
-            p3 = new PointD(0, 0, height);
+            P1 = new DenseVector(new double[] {-width / 2, 0, 0} );
+            P2 = new DenseVector(new double[] {width / 2, 0, 0});
+            P3 = new DenseVector(new double[] {0, 0, height});
         }
 
-        public SensorTriangle(PointD p1, PointD p2, PointD p3)
+        public SensorTriangle(Vector<double> P1, Vector<double> P2, Vector<double> P3)
         {
-            this.p1 = p1;
-            this.p2 = p2;
-            this.p3 = p3;
+            this.P1 = P1;
+            this.P2 = P2;
+            this.P3 = P3;
         }
     }
 }

@@ -30,14 +30,9 @@ namespace Wiimote3Point
         /// <param name="f2">Unit vector from camera origin toward pixel 2</param>
         /// <param name="f3">Unit vector from camera origin toward pixel 3</param>
         /// <returns></returns>
-        public static List<PositionOrientation> Solve(PointD p1, PointD p2, PointD p3, PointD f1, PointD f2, PointD f3)
+        public static List<PositionOrientation> Solve (Vector<double> P1, Vector<double> P2, Vector<double> P3,
+                                                       Vector<double> F1, Vector<double> F2, Vector<double> F3)
         {
-            var P1 = new DenseVector(new double[] { p1.X, p1.Y, p1.Z });
-            var P2 = new DenseVector(new double[] { p2.X, p2.Y, p2.Z });
-            var P3 = new DenseVector(new double[] { p3.X, p3.Y, p3.Z });
-            var F1 = new DenseVector(new double[] { f1.X, f1.Y, f1.Z });
-            var F2 = new DenseVector(new double[] { f2.X, f2.Y, f2.Z });
-            var F3 = new DenseVector(new double[] { f3.X, f3.Y, f3.Z });
 
             // Make transformation matrices.
             // Then transform f3 into world frame t, and p3 into world frame n.
@@ -112,7 +107,7 @@ namespace Wiimote3Point
         /// <param name="f2">Unit vector f2</param>
         /// <param name="f3">Unit vector f3</param>
         /// <returns>A 3x3 transformation matrix</returns>
-        private static Matrix<double> TransT(Vector f1, Vector f2, Vector f3)
+        private static Matrix<double> TransT(Vector<double> f1, Vector<double> f2, Vector<double> f3)
         {
             var M = new DenseMatrix(3, 3);
 
@@ -137,7 +132,7 @@ namespace Wiimote3Point
         /// <param name="P2">World point 2</param>
         /// <param name="P3">World point 3</param>
         /// <returns>The transformation matrix N</returns>
-        private static Matrix<double> TransN(Vector P1, Vector P2, Vector P3)
+        private static Matrix<double> TransN(Vector<double> P1, Vector<double> P2, Vector<double> P3)
         {
             var M = new DenseMatrix(3, 3);
             var P12 = P2 - P1;

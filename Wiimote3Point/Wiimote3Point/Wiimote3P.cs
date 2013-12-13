@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using MathNet.Numerics.LinearAlgebra.Generic;
+using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace Wiimote3Point
 {
@@ -48,12 +50,35 @@ namespace Wiimote3Point
 
         private void wm_WiimoteChanged(object sender, WiimoteLib.WiimoteChangedEventArgs args)
         {
-            PositionOrientation po = new PositionOrientation(0,0,0,0,0,0);
-            Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, po));
+            if (args.WiimoteState.IRState.IRSensors.Length >= 3)
+            {
+                Vector<double> unitVectorf1 = GetUnitVector(args.WiimoteState.IRState.IRSensors[0].RawPosition);
+                Vector<double> unitVectorf2 = GetUnitVector(args.WiimoteState.IRState.IRSensors[1].RawPosition);
+                Vector<double> unitVectorf3 = GetUnitVector(args.WiimoteState.IRState.IRSensors[2].RawPosition);
+
+                List<PositionOrientation> po = P3PMath.Solve(sensorTriangle.P1, sensorTriangle.P2, sensorTriangle.P3, unitVectorf1, unitVectorf2, unitVectorf3);
+                // lazy for now just return first solution
+                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, po[0]));
+            }
+            else
+            {
+
+            }
+
         }
 
+        private Vector<double> GetUnitVector(WiimoteLib.Point pixelcoords)
+        {
+            int PIXELS_X = 1024;
+            int PIXELS_Y = 768;
+            const double FOV_X = Math.PI / 4;
+
+            double pxFromOriginX = (PIXELS_X/2) - pixelcoords.X;
+            double pxFromOriginY = (PIXELS_Y/2) - pixelcoords.Y;
+            double pxFromOriginZ = (1 / Math.Tan(FOV_X/2)) * PIXELS_X;
+            Vector<double> unitVector = new DenseVector(new double[] { pxFromOriginX, pxFromOriginY, pxFromOriginZ });
+            return unitVector.Normalize(2);
+        }
     }
-
-
 
 }
