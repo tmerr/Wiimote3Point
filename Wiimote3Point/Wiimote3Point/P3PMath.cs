@@ -10,14 +10,26 @@ using System.Runtime.InteropServices;
 namespace Wiimote3Point
 {
     /// <summary>
-    /// Solves the Perspective 3 Point problem.
+    /// Solves the Perspective 3 Point problem using the algorithm described by
     /// 
     /// Kneip, L.; Scaramuzza, D.; Siegwart, R., 
     /// "A novel parametrization of the perspective-three-point problem for a direct computation of absolute camera position and orientation,"
     /// Computer Vision and Pattern Recognition (CVPR), 2011 IEEE Conference on , vol., no., pp.2969,2976, 20-25 June 2011
+    ///
+    /// The documentation is intended to be used alongside the paper. The naming is the same.
     /// </summary>
     static class P3PMath
     {
+        /// <summary>
+        /// Solve the perspective 3 point problem.
+        /// </summary>
+        /// <param name="p1">Position of IR point 1</param>
+        /// <param name="p2">Position of IR point 2</param>
+        /// <param name="p3">Position of IR point 3</param>
+        /// <param name="f1">Unit vector from camera origin toward pixel 1</param>
+        /// <param name="f2">Unit vector from camera origin toward pixel 2</param>
+        /// <param name="f3">Unit vector from camera origin toward pixel 3</param>
+        /// <returns></returns>
         public static List<PositionOrientation> Solve(PointD p1, PointD p2, PointD p3, PointD f1, PointD f2, PointD f3)
         {
             var P1 = new DenseVector(new double[] { p1.X, p1.Y, p1.Z });
@@ -47,7 +59,7 @@ namespace Wiimote3Point
             var phi2 = f3t[1]/f3t[2];
 
             // Find polynomial's roots (cos theta).
-            var coeffs = ComputeCoefficients(phi1, phi2, b, d12, p3n[0], p3n[1]);
+            var coeffs = ComputeCoefficients(phi1, phi2, b, d12, p3n);
             complex[] complexCoeffs = new complex[5];
             for (int i = 4; i > -1; i--)
             {
@@ -92,6 +104,14 @@ namespace Wiimote3Point
 
             return positionOrientations;
         }
+
+        /// <summary>
+        /// Build transformation matrix from the original camera frame v to intermediate camera frame t.
+        /// </summary>
+        /// <param name="f1">Unit vector f1</param>
+        /// <param name="f2">Unit vector f2</param>
+        /// <param name="f3">Unit vector f3</param>
+        /// <returns>A 3x3 transformation matrix</returns>
         private static Matrix<double> TransT(Vector f1, Vector f2, Vector f3)
         {
             var M = new DenseMatrix(3, 3);
@@ -109,6 +129,14 @@ namespace Wiimote3Point
             return M;
         }
 
+        /// <summary>
+        /// Build transformation matrix that can turn world points into world frame n via
+        /// the formula N * (Pi - P1), where N is the result of this function.
+        /// </summary>
+        /// <param name="P1">World point 1</param>
+        /// <param name="P2">World point 2</param>
+        /// <param name="P3">World point 3</param>
+        /// <returns>The transformation matrix N</returns>
         private static Matrix<double> TransN(Vector P1, Vector P2, Vector P3)
         {
             var M = new DenseMatrix(3, 3);
@@ -138,14 +166,16 @@ namespace Wiimote3Point
         /// </summary>
         /// <param name="phi1">The slope x vs z of f3</param>
         /// <param name="phi2">The slope y vs z of f3</param>
-        /// <param name="b"></param>
-        /// <param name="d12"></param>
-        /// <param name="p1"></param>
-        /// <param name="p2"></param>
+        /// <param name="b">The tangent of the angle between points P1 and P2 from camera center C</param>
+        /// <param name="d12">The distance between P1 and P2</param>
+        /// <param name="p3n">The vector of P3 in world frame n</param>
         /// <returns>A list of the five coefficients.</returns>
-        private static List<double> ComputeCoefficients(double phi1, double phi2, double b, double d12, double p1, double p2)
+        private static List<double> ComputeCoefficients(double phi1, double phi2, double b, double d12, Vector<double> p3n)
         {
             List<double> a = new List<double>(5);
+
+            double p1 = p3n[0];
+            double p2 = p3n[1];
             
             double tmp4 = Math.Pow(p2, 4);
             a[4] = - tmp4*Math.Pow(phi2, 2) - tmp4*Math.Pow(phi1, 2) - tmp4;
@@ -199,7 +229,7 @@ namespace Wiimote3Point
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        public struct complex
+        struct complex
         {
             public double real;
             public double imag;
@@ -213,10 +243,6 @@ namespace Wiimote3Point
         /// <param name="results">The array to output the complex roots to.</param>
         /// <returns>The number of elements in the results array.</returns>
         [DllImport("quartic.dll", EntryPoint="solve_poly", CallingConvention = CallingConvention.Cdecl)]
-        public static extern int SolvePoly(
-            int degree,
-            complex[] poly,
-            [In, Out] complex[] results
-        );
+        private static extern int SolvePoly(int degree, complex[] poly, [In, Out] complex[] results);
     }
 }
