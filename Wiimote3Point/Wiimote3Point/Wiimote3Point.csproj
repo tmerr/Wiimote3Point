@@ -52,7 +52,6 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PointD.cs" />
     <Compile Include="P3PMath.cs" />
     <Compile Include="PositionOrientation.cs" />
     <Compile Include="SensorTriangle.cs" />
