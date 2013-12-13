@@ -62,9 +62,8 @@ namespace Wiimote3Point
             }
             else
             {
-
+                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, new PositionOrientation(0, 0, 0, 0, 0, 0)));
             }
-
         }
 
         private Vector<double> GetUnitVector(WiimoteLib.Point pixelcoords)
@@ -73,8 +72,8 @@ namespace Wiimote3Point
             int PIXELS_Y = 768;
             const double FOV_X = Math.PI / 4;
 
-            int pxFromOriginX = (PIXELS_X/2) - pixelcoords.X;
-            int pxFromOriginY = (PIXELS_Y/2) - pixelcoords.Y;
+            int pxFromOriginX = pixelcoords.X - (PIXELS_X/2);
+            int pxFromOriginY = pixelcoords.Y - (PIXELS_Y/2);
             double pxFromOriginZ = (1 / Math.Tan(FOV_X/2)) * PIXELS_X;
             Vector<double> unitVector = new DenseVector(new double[] { pxFromOriginX, pxFromOriginY, pxFromOriginZ });
             return unitVector.Normalize(2);
