@@ -19,9 +19,9 @@ namespace TestWiimote3Point
 
         Vector3[] vertices =
         {
-            new Vector3(-1f, -1f, 0),
-            new Vector3(1f, -1f, 0f),
-            new Vector3(0f, 1f, 0f),
+            new Vector3(0f, 0f, 0),
+            new Vector3(1f, 0f, 0f),
+            new Vector3(.5f, 1f, 0f),
         };
 
         public IRSensorsView()
@@ -38,7 +38,7 @@ namespace TestWiimote3Point
             glControl1.MakeCurrent();
 
             GL.MatrixMode(MatrixMode.Projection);
-            Matrix4 projection = Matrix4.CreateOrthographicOffCenter(-1f, 1f, -1f, 1f, -1f, 1f);
+            Matrix4 projection = Matrix4.CreateOrthographicOffCenter(0f, 1f, 0f, 1f, -1f, 1f);
             GL.LoadMatrix(ref projection);
 
             GL.MatrixMode(MatrixMode.Modelview);
@@ -47,7 +47,7 @@ namespace TestWiimote3Point
 
             vbo = GL.GenBuffer();
 
-            this.Invalidate();
+            glControl1.Invalidate();
         }
 
         public void UpdatePoints(Vector3[] vertices)
@@ -57,7 +57,7 @@ namespace TestWiimote3Point
                 throw new ArgumentException("vertices");
             }
             this.vertices = vertices;
-            this.Invalidate();
+            glControl1.Invalidate();
         }
 
         private void IRSensorsView2_Paint(object sender, PaintEventArgs e)

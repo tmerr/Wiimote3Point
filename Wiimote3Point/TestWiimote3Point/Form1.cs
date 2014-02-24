@@ -49,7 +49,6 @@ namespace TestWiimote3Point
                 verts[2] = new Vector3(sensors[2].Position.X, sensors[2].Position.Y, 0);
                 irSensorsView21.UpdatePoints(verts);
 
-                
                 var pos = args.positionOrientations;
                 var cubePositions = new List<Vector3>();
                 var cubeOrientations = new List<Vector3>();
