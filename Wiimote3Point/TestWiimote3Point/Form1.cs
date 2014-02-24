@@ -16,7 +16,6 @@ namespace TestWiimote3Point
     public partial class Form1 : Form
     {
         private Wiimote3P wiimote;
-        bool loaded = false;
 
         public Form1()
         {
@@ -50,12 +49,16 @@ namespace TestWiimote3Point
                 verts[2] = new Vector3(sensors[2].Position.X, sensors[2].Position.Y, 0);
                 irSensorsView21.UpdatePoints(verts);
 
-                /*
+                
                 var pos = args.positionOrientations;
-                vertices[0] = new Vector3((float)pos[0].X, (float)pos[0].Y, (float)pos[0].Z);
-                vertices[1] = new Vector3((float)pos[1].X, (float)pos[1].Y, (float)pos[1].Z);
-                vertices[2] = new Vector3((float)pos[2].X, (float)pos[2].Y, (float)pos[2].Z);
-                 */
+                var cubePositions = new List<Vector3>();
+                var cubeOrientations = new List<Vector3>();
+                foreach (PositionOrientation po in args.positionOrientations)
+                {
+                    cubePositions.Add(new Vector3((float)po.X, (float)po.Y, (float)po.Z));
+                    cubeOrientations.Add(new Vector3((float)po.pitch, (float)po.yaw, (float)po.roll));
+                }
+                worldView1.UpdatePoints(new Vector3[3], cubePositions, cubeOrientations);
             }
         }
 
