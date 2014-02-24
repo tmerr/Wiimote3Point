@@ -30,17 +30,6 @@ namespace TestWiimote3Point
             wiimote.Wiimote3PChanged += wiimote_Wiimote3PChanged;
         }
 
-        private void glControl_Load(object sender, EventArgs e)
-        {
-        }
-
-        private void glControl_Paint(object sender, PaintEventArgs e)
-        {
-            if (!loaded) // Play nice
-                return;
-
-        }
-
         private void wiimote_Wiimote3PChanged(object sender, Wiimote3PChangedEventArgs args)
         {
             lblPosition.BeginInvoke(new Action(() =>
@@ -61,7 +50,6 @@ namespace TestWiimote3Point
                 verts[2] = new Vector3(sensors[2].Position.X, sensors[2].Position.Y, 0);
                 irSensorsView21.UpdatePoints(verts);
 
-
                 /*
                 var pos = args.positionOrientations;
                 vertices[0] = new Vector3((float)pos[0].X, (float)pos[0].Y, (float)pos[0].Z);
@@ -71,19 +59,13 @@ namespace TestWiimote3Point
             }
         }
 
-        private void shet()
-        {
-            Console.Out.WriteLine(GL.GetError().ToString());
-        }
-
-        
         private void btnConnect_Click(object sender, EventArgs e)
         {
             try
             {
                 wiimote.Connect();
             }
-            catch (Exception ex)
+            catch (WiimoteLib.WiimoteNotFoundException ex)
             {
                 MessageBox.Show(this, "Wiimote not found.");
             }
@@ -91,13 +73,6 @@ namespace TestWiimote3Point
 
         private void danTimer_Tick(object sender, EventArgs e)
         {
-            /*
-            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
-            GL.BufferData<Vector3>(BufferTarget.ArrayBuffer,
-                                   new IntPtr(vertices.Length * Vector3.SizeInBytes),
-                                   vertices, BufferUsageHint.StaticDraw);
-            glControl.Invalidate();
-             */
         }
     }
 }
