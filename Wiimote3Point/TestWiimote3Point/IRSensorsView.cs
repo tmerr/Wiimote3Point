@@ -16,7 +16,13 @@ namespace TestWiimote3Point
     public partial class IRSensorsView : UserControl
     {
         int vbo;
-        Vector3[] vertices = new Vector3[3];
+
+        Vector3[] vertices =
+        {
+            new Vector3(-1f, -1f, 0),
+            new Vector3(1f, -1f, 0f),
+            new Vector3(0f, 1f, 0f),
+        };
 
         public IRSensorsView()
         {
@@ -41,9 +47,6 @@ namespace TestWiimote3Point
 
             vbo = GL.GenBuffer();
 
-            vertices[0] = new Vector3(-1f, -1f, 0);
-            vertices[1] = new Vector3(1f, -1f, 0f);
-            vertices[2] = new Vector3(0f, 1f, 0f);
             this.Invalidate();
         }
 
@@ -62,13 +65,13 @@ namespace TestWiimote3Point
             glControl1.MakeCurrent();
             GL.ClearColor(Color.Blue);
             GL.Clear(ClearBufferMask.ColorBufferBit);
-            GL.EnableVertexAttribArray(0);
+            GL.EnableClientState(ArrayCap.VertexArray);
             GL.Color4(Color.Black);
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             GL.BufferData<Vector3>(BufferTarget.ArrayBuffer,
                 new IntPtr(vertices.Length * Vector3.SizeInBytes),
                 vertices, BufferUsageHint.StaticDraw);
-            GL.VertexAttribPointer(0, 3, VertexAttribPointerType.Float, false, 0, 0);
+            GL.VertexPointer(3, VertexPointerType.Float, 0, 0);
             GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
             GL.DisableVertexAttribArray(0);
             glControl1.SwapBuffers();

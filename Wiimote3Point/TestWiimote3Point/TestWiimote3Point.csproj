@@ -56,6 +56,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="3DView.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="3DView.Designer.cs">
+      <DependentUpon>3DView.cs</DependentUpon>
+    </Compile>
     <Compile Include="Form1.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -70,6 +76,9 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="3DView.resx">
+      <DependentUpon>3DView.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Form1.resx">
       <DependentUpon>Form1.cs</DependentUpon>
     </EmbeddedResource>
