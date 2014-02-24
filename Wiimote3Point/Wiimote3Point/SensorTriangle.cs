@@ -28,7 +28,7 @@ namespace Wiimote3Point
         {
             P1 = new DenseVector(new double[] {-width / 2, 0, 0} );
             P2 = new DenseVector(new double[] {width / 2, 0, 0});
-            P3 = new DenseVector(new double[] {0, 0, height});
+            P3 = new DenseVector(new double[] {0, height, 0});
         }
 
         public SensorTriangle(Vector<double> P1, Vector<double> P2, Vector<double> P3)

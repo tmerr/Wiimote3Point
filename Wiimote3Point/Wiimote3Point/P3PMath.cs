@@ -7,8 +7,9 @@ using MathNet.Numerics.LinearAlgebra.Generic;
 using System.Linq.Expressions;
 using System.Runtime.InteropServices;
 
+
 namespace Wiimote3Point
-{
+{   
     /// <summary>
     /// Solves the Perspective 3 Point problem using the algorithm described by
     /// 
@@ -36,27 +37,27 @@ namespace Wiimote3Point
 
             // Make transformation matrices.
             // Then transform f3 into world frame t, and p3 into world frame n.
-            var T = TransT(F1, F2, F3);
-            var N = TransN(P1, P2, P3);
-            var f3t = T.Multiply(F3);
-            var p3n = N.Multiply(P3 - P1);
+            Matrix<double> T = TransT(F1, F2, F3);
+            Matrix<double> N = TransN(P1, P2, P3);
+            Vector<double> f3t = T.Multiply(F3);
+            Vector<double> p3n = N.Multiply(P3 - P1);
 
             // Find b, the cotan of the angle between f1 and f2.
-            double cosbeta = Math.Cos(F1.DotProduct(F2));
+            double cosbeta = F1.DotProduct(F2);
             int sign = Math.Sign(cosbeta);
-            double b = sign * Math.Sqrt(1 / (1 - Math.Pow(cosbeta, 2)));
+            double b = sign * Math.Sqrt((1 / (1 - cosbeta*cosbeta)) - 1);
 
             // Get the distance between P1 and P2
-            double d12 = (P2 - P1).ToColumnMatrix().L2Norm();
+            double d12 = (P2 - P1).Norm(2);
 
             // Use f3 in world frame t's x vs z slope and y vs z slope.
             var phi1 = f3t[0]/f3t[2];
             var phi2 = f3t[1]/f3t[2];
 
             // Find polynomial's roots (cos theta).
-            var coeffs = ComputeCoefficients(phi1, phi2, b, d12, p3n);
+            List<double> coeffs = ComputeCoefficients(phi1, phi2, b, d12, p3n);
             complex[] complexCoeffs = new complex[5];
-            for (int i = 4; i > -1; i--)
+            for (int i = 0; i < 5; i++)
             {
                 complexCoeffs[i].real = coeffs[i];
                 complexCoeffs[i].imag = 0;
@@ -68,37 +69,57 @@ namespace Wiimote3Point
             List<PositionOrientation> positionOrientations = new List<PositionOrientation>();
             foreach (complex result in complexResults)
             {
+                if (result.real < result.imag) {continue;}
+
                 // Alpha is the angle between P1P2 and P1C. See (9).
-                double numerator = (phi1/phi2)*P3[0] + (result.real * P3[1]) - (d12 * b);
-                double denominator = ((phi1/phi2) * result.real * P3[1]) - P3[0] + d12;
-                double cotAlpha = numerator/denominator;
                 double cosTheta = result.real;
-                double sinTheta = Math.Sqrt(1 - result.real * result.real);
+                double numerator = (phi1/phi2)*p3n[0] + (cosTheta * p3n[1]) - (d12 * b);
+                double denominator = ((phi1/phi2) * cosTheta * p3n[1]) - p3n[0] + d12;
+                double cotAlpha = numerator/denominator;
+                double sinTheta = Math.Sqrt(1 - cosTheta * cosTheta);
                 double sinAlpha = Math.Sqrt(1 / (cotAlpha * cotAlpha + 1));
-                double cosAlpha = Math.Sqrt(1 - sinAlpha * sinAlpha);
+                double cosAlpha = Math.Sign(cotAlpha) * Math.Sqrt(1 - sinAlpha * sinAlpha);
 
                 // Find the camera center in world frame n. See (5).
                 DenseVector Cn = new DenseVector(3);
                 Cn[0] = d12 * cosAlpha * (sinAlpha * b + cosAlpha);
-                Cn[1] = d12 * sinAlpha * cosAlpha * (sinAlpha * b + cosAlpha);
+                Cn[1] = d12 * sinAlpha * cosTheta * (sinAlpha * b + cosAlpha);
                 Cn[2] = d12 * sinAlpha * sinTheta * (sinAlpha * b + cosAlpha);
 
                 // Using transformation matrix Q from n to t we can find the actual camera center. (6)
                 DenseMatrix Q = new DenseMatrix(3, 3);
-                Q.SetRow(0, new double[] {-cosAlpha, sinAlpha*cosTheta, -sinAlpha*sinTheta});
+                Q.SetRow(0, new double[] {-cosAlpha, -sinAlpha*cosTheta, -sinAlpha*sinTheta});
                 Q.SetRow(1, new double[] {sinAlpha, -cosAlpha*cosTheta, -cosAlpha*sinTheta});
                 Q.SetRow(2, new double[] { 0, -sinTheta, cosTheta });
 
                 // Find absolute camera center C and orientation R (12) and (13)
-                var C = P1 + N.Transpose() * Cn;
-                var R = N.Transpose() * Q.Transpose() * T;
+                Vector<double> C = P1 + (N.Transpose() * Cn);
+                Matrix<double> R = N.Transpose() * Q.Transpose() * T;
 
                 PositionOrientation p = new PositionOrientation(C[0], C[1], C[2], 0, 0, 0);
-                positionOrientations.Add(p);
+                if (!double.IsNaN(p.X))
+                {
+                    positionOrientations.Add(p);
+                }
             }
 
             return positionOrientations;
         }
+
+        private static Vector<double> Cross(Vector<double> left, Vector<double> right)
+        {
+            if (left.Count != 3 || right.Count != 3)
+            {
+                string msg = "Vectors must have a length of 3.";
+                throw new Exception(msg);
+            }
+            Vector<double> result = new DenseVector(3);
+            result[0] = left[1] * right[2] - left[2] * right[1];
+            result[1] = left[2] * right[0] - left[0] * right[2];
+            result[2] = left[0] * right[1] - left[1] * right[0];
+            return result;
+        }
+
 
         /// <summary>
         /// Build transformation matrix from the original camera frame v to intermediate camera frame t.
@@ -112,14 +133,12 @@ namespace Wiimote3Point
             var M = new DenseMatrix(3, 3);
 
             var tx = f1;
-            M.SetRow(0, f1);
+            var tz = Cross(f1, f2).Normalize(2);
+            var ty = Cross(tz, tx);
 
-            var tmp = f1.OuterProduct(f2);
-            var tz = tmp.Divide(tmp.L2Norm()).CreateVector(3);
-            M.SetRow(2, tz);
-
-            var ty = tz.OuterProduct(f1).CreateVector(3);
+            M.SetRow(0, tx);
             M.SetRow(1, ty);
+            M.SetRow(2, tz);
 
             return M;
         }
@@ -138,15 +157,13 @@ namespace Wiimote3Point
             var P12 = P2 - P1;
             var P13 = P3 - P1;
 
-            var nx = P12 / P12.ToColumnMatrix().L2Norm();
+            var nx = P12.Normalize(2);
+            var nz = Cross(nx, P13).Normalize(2);
+            var ny = Cross(nz, nx);
+
             M.SetRow(0, nx);
-
-            var tmp = nx.OuterProduct(P13);
-            var nz = tmp.Divide(tmp.L2Norm()).CreateVector(3);
-            M.SetRow(2, nz);
-
-            var ny = nz.OuterProduct(nx).CreateVector(3);
             M.SetRow(1, ny);
+            M.SetRow(2, nz);
 
             return M;
         }
@@ -171,12 +188,12 @@ namespace Wiimote3Point
             double p2 = p3n[1];
             
             double tmp4 = Math.Pow(p2, 4);
-            var a4 = - tmp4*Math.Pow(phi2, 2) - tmp4*Math.Pow(phi1, 2) - tmp4;
+            var a4 = - tmp4* phi2* phi2 - tmp4* phi1 * phi1 - tmp4;
 
             double tmp3 = Math.Pow(p2, 3);
             var a3 =
                 + (2 * tmp3 * d12 * b)
-                + (2 * tmp3 * Math.Pow(phi2, 2) * d12 * b)
+                + (2 * tmp3 * phi2 * phi2 * d12 * b)
                 - (2 * tmp3 * phi1 * phi2 * d12)
                 ;
 

@@ -18,15 +18,15 @@ namespace Wiimote3Point
         /// <summary>
         /// 3D position and orientation derived from the wiimote state.
         /// </summary>
-        public PositionOrientation positionOrientation;
+        public List<PositionOrientation> positionOrientations;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public Wiimote3PChangedEventArgs(WiimoteLib.WiimoteState ws, PositionOrientation po)
+        public Wiimote3PChangedEventArgs(WiimoteLib.WiimoteState ws, List<PositionOrientation> po)
         {
             wiimoteState = ws;
-            positionOrientation = po;
+            positionOrientations = po;
         }
 
     }

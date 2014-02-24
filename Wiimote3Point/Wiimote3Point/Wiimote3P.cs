@@ -35,14 +35,15 @@ namespace Wiimote3Point
         public Wiimote3P(SensorTriangle sensorTriangle)
         {
             this.sensorTriangle = sensorTriangle;
+            wiimote.WiimoteChanged += wm_WiimoteChanged;
         }
 
         /// <summary>
         /// Connect to the wiimote.
+        /// <exception cref="WiimoteNotFoundException">Thrown when connecting if can't find Wiimote.</exception>
         /// </summary>
         public void Connect()
         {
-            wiimote.WiimoteChanged += wm_WiimoteChanged;
             wiimote.Connect();
             wiimote.SetReportType(WiimoteLib.InputReport.IRAccel, true);
             wiimote.SetLEDs(false, true, true, false);
@@ -57,12 +58,11 @@ namespace Wiimote3Point
                 Vector<double> unitVectorf3 = GetUnitVector(args.WiimoteState.IRState.IRSensors[2].RawPosition);
 
                 List<PositionOrientation> po = P3PMath.Solve(sensorTriangle.P1, sensorTriangle.P2, sensorTriangle.P3, unitVectorf1, unitVectorf2, unitVectorf3);
-                // lazy for now just return first solution
-                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, po[0]));
+                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, po));
             }
             else
             {
-                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, new PositionOrientation(0, 0, 0, 0, 0, 0)));
+                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, new List<PositionOrientation>()));
             }
         }
 
@@ -70,12 +70,12 @@ namespace Wiimote3Point
         {
             int PIXELS_X = 1024;
             int PIXELS_Y = 768;
-            const double FOV_X = Math.PI / 4;
+            const double FOV_X = .578;
 
             int pxFromOriginX = pixelcoords.X - (PIXELS_X/2);
             int pxFromOriginY = pixelcoords.Y - (PIXELS_Y/2);
-            double pxFromOriginZ = (1 / Math.Tan(FOV_X/2)) * PIXELS_X;
-            Vector<double> unitVector = new DenseVector(new double[] { pxFromOriginX, pxFromOriginY, pxFromOriginZ });
+            double pxFromOriginZ = PIXELS_X / Math.Tan(FOV_X / 2);
+            var unitVector = new DenseVector(new double[] { pxFromOriginX, pxFromOriginY, pxFromOriginZ });
             return unitVector.Normalize(2);
         }
     }

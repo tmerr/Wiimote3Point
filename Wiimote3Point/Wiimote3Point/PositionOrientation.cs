@@ -29,5 +29,7 @@ namespace Wiimote3Point
             string formatStr = "{{X={0}, Y={1}, Z={2}, pitch={3}, roll={4}, yaw={5}}}";
             return string.Format(formatStr, X, Y, Z, pitch, roll, yaw);
         }
+
+
     }
 }
