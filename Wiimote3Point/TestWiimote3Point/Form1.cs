@@ -69,7 +69,6 @@ namespace TestWiimote3Point
                 vertices[2] = new Vector3((float)pos[2].X, (float)pos[2].Y, (float)pos[2].Z);
                  */
             }
-            glControl.Invalidate();
         }
 
         private void shet()
