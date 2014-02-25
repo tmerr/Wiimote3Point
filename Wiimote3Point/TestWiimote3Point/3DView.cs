@@ -19,7 +19,7 @@ namespace TestWiimote3Point
         private Matrix4 projectionMatrix, modelviewMatrix;
 
         private List<Vector3> cubePositions = new List<Vector3>();
-        private List<Vector3> cubeOrientations = new List<Vector3>();
+        private List<Matrix3> orientations = new List<Matrix3>();
         private Vector3 cameraRotation = new Vector3();
         private float cameraZoom = 1f;
         private bool dragging = false;
@@ -84,7 +84,7 @@ namespace TestWiimote3Point
             }
             this.MouseWheel += WorldView_MouseWheel;
             cubePositions.Add(new Vector3(0, 0, 0));
-            cubeOrientations.Add(new Vector3(0, 0, 0));
+            orientations.Add(Matrix3.Identity);
 
             timer1.Start();
         }
@@ -94,19 +94,15 @@ namespace TestWiimote3Point
             cameraZoom += cameraZoom * e.Delta / 500f;
         }
 
-        public void UpdatePoints(Vector3[] triangleVertices, List<Vector3> cubePositions, List<Vector3> cubeOrientations)
+        public void UpdatePoints(Vector3[] triangleVertices, List<Vector3> cubePositions, List<Matrix3> orientations)
         {
             if (triangleVertices.Length != 3)
             {
                 throw new ArgumentException("triangleVertices must have 3 elements.");
             }
-            if (cubePositions.Count != cubeOrientations.Count)
-            {
-                throw new ArgumentException("cubeOrientations must have the same number of elements as cubePositions.");
-            }
-            //this.sensorTriangleVerts = triangleVertices;
+            this.sensorTriangleVerts = triangleVertices;
             this.cubePositions = cubePositions;
-            this.cubeOrientations = cubeOrientations;
+            this.orientations = orientations;
         }
 
         public void Draw()
@@ -141,10 +137,17 @@ namespace TestWiimote3Point
             // Draw each cube
             GL.VertexPointer(3, VertexPointerType.Float, 0, cube);
             GL.ColorPointer(4, ColorPointerType.Float, 0, cubeColors);
-            foreach (Vector3 cubePosition in cubePositions)
+
+            for (int i = 0; i < cubePositions.Count; i++)
             {
+                var cubePosition = cubePositions[i];
+                var orientation = orientations[i];
+                Matrix4 rotation = new Matrix4(
+                    new Vector4(orientation.Row0), new Vector4(orientation.Row1),
+                    new Vector4(orientation.Row2), new Vector4(0,0,0,1)
+                    );
                 Matrix4 translation = Matrix4.CreateTranslation(cubePosition);
-                modelviewMatrix = translation * rotY * rotZ * rotX * scaleMatrix * lookAt;
+                modelviewMatrix =  translation * rotation * rotY * rotZ * rotX * scaleMatrix * lookAt;
                 GL.MatrixMode(MatrixMode.Modelview);
                 GL.LoadMatrix(ref modelviewMatrix);
                 GL.DrawElements(PrimitiveType.Triangles, 36, DrawElementsType.UnsignedByte, triangles);
@@ -219,6 +222,16 @@ namespace TestWiimote3Point
         private void timer1_Tick(object sender, EventArgs e)
         {
             Draw();
+        }
+
+        private void WorldView_Resize(object sender, EventArgs e)
+        {
+            if (!loaded) { return; }
+            glControl1.MakeCurrent();
+			GL.Viewport(0, 0, Width, Height);
+			projectionMatrix = Matrix4.CreatePerspectiveFieldOfView((float)Math.PI / 4, Width / (float)Height, 1f, 100f);
+			GL.MatrixMode(MatrixMode.Projection);
+			GL.LoadMatrix(ref projectionMatrix);
         }
     }
 }

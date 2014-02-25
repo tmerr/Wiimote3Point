@@ -21,12 +21,14 @@ namespace Wiimote3Point
         /// </summary>
         public event EventHandler<Wiimote3PChangedEventArgs> Wiimote3PChanged;
 
+        public int PIXELS_Z { get; set; }
+
+        public SensorTriangle SensorTriangle { get; set; }
+
         /// <summary>
         /// Full access to the underlying wiimote.
         /// </summary>
         public WiimoteLib.Wiimote wiimote = new WiimoteLib.Wiimote();
-
-        private SensorTriangle sensorTriangle;
 
         /// <summary>
         /// Constructor
@@ -34,8 +36,9 @@ namespace Wiimote3Point
         /// <param name="sensorTriangle">The sensor triangle.</param>
         public Wiimote3P(SensorTriangle sensorTriangle)
         {
-            this.sensorTriangle = sensorTriangle;
+            this.SensorTriangle = sensorTriangle;
             wiimote.WiimoteChanged += wm_WiimoteChanged;
+            PIXELS_Z = 50;
         }
 
         /// <summary>
@@ -57,12 +60,12 @@ namespace Wiimote3Point
                 Vector<double> unitVectorf2 = GetUnitVector(args.WiimoteState.IRState.IRSensors[1].RawPosition);
                 Vector<double> unitVectorf3 = GetUnitVector(args.WiimoteState.IRState.IRSensors[2].RawPosition);
 
-                List<PositionOrientation> po = P3PMath.Solve(sensorTriangle.P1, sensorTriangle.P2, sensorTriangle.P3, unitVectorf1, unitVectorf2, unitVectorf3);
+                List<Pose> po = P3PMath.Solve(SensorTriangle.P1, SensorTriangle.P2, SensorTriangle.P3, unitVectorf1, unitVectorf2, unitVectorf3);
                 Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, po));
             }
             else
             {
-                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, new List<PositionOrientation>()));
+                Wiimote3PChanged(this, new Wiimote3PChangedEventArgs(args.WiimoteState, new List<Pose>()));
             }
         }
 
@@ -70,11 +73,11 @@ namespace Wiimote3Point
         {
             int PIXELS_X = 1024;
             int PIXELS_Y = 768;
-            const double FOV_X = .578;
+            //const double FOV_X = .578; unused
 
             int pxFromOriginX = pixelcoords.X - (PIXELS_X/2);
             int pxFromOriginY = pixelcoords.Y - (PIXELS_Y/2);
-            double pxFromOriginZ = PIXELS_X / Math.Tan(FOV_X / 2);
+            double pxFromOriginZ = PIXELS_Z; //PIXELS_X / Math.Tan(FOV_X / 2);
             var unitVector = new DenseVector(new double[] { pxFromOriginX, pxFromOriginY, pxFromOriginZ });
             return unitVector.Normalize(2);
         }

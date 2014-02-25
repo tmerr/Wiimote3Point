@@ -17,7 +17,20 @@ namespace Wiimote3Point
         /// The points on the triangle relative to the world origin.
         /// </summary>
         public Vector<double> P1, P2, P3;
-
+        public float[,] Vertices
+        {
+            get
+            {
+                float[,] verts =
+                {
+                    {(float)P1[0], (float)P1[1], (float)P1[2]},
+                    {(float)P2[0], (float)P2[1], (float)P2[2]},
+                    {(float)P3[0], (float)P3[1], (float)P3[2]}
+                };
+                return verts;
+            }
+        }
+        
         /// <summary>
         /// Construct the sensor triangle assuming it is isosceles, and lying on the world's XZ axis
         /// with the midpoint of the base at the world's origin.

@@ -53,7 +53,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="P3PMath.cs" />
-    <Compile Include="PositionOrientation.cs" />
+    <Compile Include="Pose.cs" />
     <Compile Include="SensorTriangle.cs" />
     <Compile Include="Wiimote3P.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

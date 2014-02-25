@@ -58,6 +58,7 @@
             this.Name = "WorldView";
             this.Load += new System.EventHandler(this.WorldView_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.WorldView_Paint);
+            this.Resize += new System.EventHandler(this.WorldView_Resize);
             this.ResumeLayout(false);
 
         }

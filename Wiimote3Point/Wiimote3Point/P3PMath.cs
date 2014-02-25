@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 
 
 namespace Wiimote3Point
-{   
+{
     /// <summary>
     /// Solves the Perspective 3 Point problem using the algorithm described by
     /// 
@@ -31,22 +31,21 @@ namespace Wiimote3Point
         /// <param name="f2">Unit vector from camera origin toward pixel 2</param>
         /// <param name="f3">Unit vector from camera origin toward pixel 3</param>
         /// <returns></returns>
-        public static List<PositionOrientation> Solve (Vector<double> P1, Vector<double> P2, Vector<double> P3,
+        public static List<Pose> Solve (Vector<double> P1, Vector<double> P2, Vector<double> P3,
                                                        Vector<double> F1, Vector<double> F2, Vector<double> F3)
         {
-
             // Make transformation matrices.
             // Then transform f3 into world frame t, and p3 into world frame n.
             Matrix<double> T = TransT(F1, F2, F3);
             Matrix<double> N = TransN(P1, P2, P3);
             Vector<double> f3t = T.Multiply(F3);
             Vector<double> p3n = N.Multiply(P3 - P1);
-
+            
             // Find b, the cotan of the angle between f1 and f2.
             double cosbeta = F1.DotProduct(F2);
             int sign = Math.Sign(cosbeta);
             double b = sign * Math.Sqrt((1 / (1 - cosbeta*cosbeta)) - 1);
-
+            
             // Get the distance between P1 and P2
             double d12 = (P2 - P1).Norm(2);
 
@@ -66,10 +65,10 @@ namespace Wiimote3Point
             SolvePoly(4, complexCoeffs, complexResults);
 
             // Backsubstitute each root (cos theta) to eventually get the camera center and orientation.
-            List<PositionOrientation> positionOrientations = new List<PositionOrientation>();
+            List<Pose> positionOrientations = new List<Pose>();
             foreach (complex result in complexResults)
             {
-                if (result.real < result.imag) {continue;}
+                //if (result.real < result.imag) {continue;}
 
                 // Alpha is the angle between P1P2 and P1C. See (9).
                 double cosTheta = result.real;
@@ -95,8 +94,7 @@ namespace Wiimote3Point
                 // Find absolute camera center C and orientation R (12) and (13)
                 Vector<double> C = P1 + (N.Transpose() * Cn);
                 Matrix<double> R = N.Transpose() * Q.Transpose() * T;
-
-                PositionOrientation p = new PositionOrientation(C[0], C[1], C[2], 0, 0, 0);
+                Pose p = new Pose(C[0], C[1], C[2], R.ToArray());
                 if (!double.IsNaN(p.X))
                 {
                     positionOrientations.Add(p);
@@ -164,7 +162,7 @@ namespace Wiimote3Point
             M.SetRow(0, nx);
             M.SetRow(1, ny);
             M.SetRow(2, nz);
-
+            
             return M;
         }
 
